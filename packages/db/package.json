@@ -1,0 +1,19 @@
+{
+  "name": "@dental-compare/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "generated/index.js",
+  "types": "generated/index.d.ts",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.1.0"
+  }
+}

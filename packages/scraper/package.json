@@ -1,0 +1,24 @@
+{
+  "name": "@dental-compare/scraper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "scrape": "tsx src/cli.ts",
+    "ingest": "tsx src/ingest.ts",
+    "check-alerts": "tsx src/checkAlerts.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dental-compare/db": "*",
+    "cheerio": "^1.0.0",
+    "playwright": "^1.49.0",
+    "resend": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.10.0"
+  }
+}

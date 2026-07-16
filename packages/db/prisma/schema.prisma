@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  name          String
+  baseUrl       String
+  storeProducts StoreProduct[]
+}
+
+model Product {
+  id            String         @id @default(cuid())
+  canonicalName String
+  normalizedKey String
+  category      String?
+  createdAt     DateTime       @default(now())
+  storeProducts StoreProduct[]
+  alerts        PriceAlert[]
+
+  @@index([normalizedKey])
+}
+
+model StoreProduct {
+  id             String          @id @default(cuid())
+  storeId        String
+  store          Store           @relation(fields: [storeId], references: [id])
+  productId      String?
+  product        Product?        @relation(fields: [productId], references: [id])
+  externalId     String?
+  name           String
+  url            String
+  imageUrl       String?
+  lastSeenAt     DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  priceSnapshots PriceSnapshot[]
+  alerts         PriceAlert[]
+
+  @@unique([storeId, url])
+  @@index([productId])
+}
+
+model PriceSnapshot {
+  id             String       @id @default(cuid())
+  storeProductId String
+  storeProduct   StoreProduct @relation(fields: [storeProductId], references: [id])
+  price          Float
+  pricePix       Float?
+  inStock        Boolean      @default(true)
+  scrapedAt      DateTime     @default(now())
+
+  @@index([storeProductId, scrapedAt])
+}
+
+model PriceAlert {
+  id             String        @id @default(cuid())
+  email          String
+  storeProductId String?
+  storeProduct   StoreProduct? @relation(fields: [storeProductId], references: [id])
+  productId      String?
+  product        Product?      @relation(fields: [productId], references: [id])
+  targetPrice    Float
+  active         Boolean       @default(true)
+  triggeredAt    DateTime?
+  createdAt      DateTime      @default(now())
+}
+
+model SearchTerm {
+  id            String    @id @default(cuid())
+  term          String    @unique
+  lastScrapedAt DateTime?
+  createdAt     DateTime  @default(now())
+}

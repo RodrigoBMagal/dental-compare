@@ -1,0 +1,46 @@
+name: Coleta de preços
+
+on:
+  schedule:
+    # 09:00 e 21:00 (horário de Brasília, UTC-3)
+    - cron: "0 12,0 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar navegador do Playwright
+        run: npx --workspace=packages/scraper playwright install --with-deps chromium
+
+      - name: Gerar Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Aplicar migrações do banco
+        run: npx --workspace=packages/db prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Coletar preços das lojas
+        run: npm run --workspace=packages/scraper ingest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verificar alertas de preço
+        run: npm run --workspace=packages/scraper check-alerts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERTS_FROM_EMAIL: ${{ secrets.ALERTS_FROM_EMAIL }}
