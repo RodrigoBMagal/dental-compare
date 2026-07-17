@@ -27,6 +27,13 @@ const nextConfig = {
   // Prisma's client does dynamic requires that confuse Next's output-file-tracing
   // (@vercel/nft), which otherwise tries to walk far more of the filesystem than needed.
   serverExternalPackages: ["@prisma/client", "@dental-compare/db"],
+  // The query engine binary is loaded via a dynamically constructed path at runtime,
+  // so nft's static analysis misses it — without this, Vercel's serverless bundle
+  // ships without the .so.node file and Prisma fails at runtime with "could not
+  // locate the Query Engine" even though it was generated correctly at build time.
+  outputFileTracingIncludes: {
+    "/**/*": ["../../packages/db/generated/**/*"],
+  },
 };
 
 export default nextConfig;
