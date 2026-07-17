@@ -5,6 +5,7 @@ build/
 .env
 .env.local
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 *.log
 .DS_Store
 *.tsbuildinfo

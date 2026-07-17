@@ -83,3 +83,8 @@ npm run dev                                   # abre o site em http://localhost:
 - **Cobertura por termo de busca**: a coleta roda sobre uma lista de termos rastreados (que
   cresce conforme os usuários buscam), não o catálogo inteiro de cada loja.
 - **Surya Dental**: ver seção acima.
+- **Envio de e-mail (Resend)**: enquanto nenhum domínio próprio for verificado no Resend, o
+  plano gratuito só permite enviar alertas para o e-mail usado no cadastro da conta Resend —
+  qualquer outro destinatário falha silenciosamente no envio. Para liberar alertas para
+  qualquer e-mail de cliente, verifique um domínio em resend.com/domains e atualize
+  `ALERTS_FROM_EMAIL` para usar esse domínio.
