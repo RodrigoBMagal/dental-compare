@@ -10,6 +10,5 @@ build/
 .DS_Store
 *.tsbuildinfo
 /packages/db/prisma/dev.db
-/packages/db/generated/
 /.next-build-home/
 .vercel
