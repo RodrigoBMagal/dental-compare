@@ -28,7 +28,14 @@ export function AlertButton({
 
   return (
     <form
-      style={{ display: "flex", gap: 4, alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6,
+        alignItems: "center",
+        justifyContent: "flex-end",
+        width: "100%",
+      }}
       onSubmit={async (e) => {
         e.preventDefault();
         setStatus("saving");
@@ -50,7 +57,14 @@ export function AlertButton({
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        style={{ width: 140, fontSize: "0.8rem", padding: "0.2rem 0.4rem" }}
+        style={{
+          flex: "1 1 130px",
+          minWidth: 110,
+          fontSize: "0.85rem",
+          padding: "0.5rem 0.6rem",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+        }}
       />
       <input
         type="number"
@@ -58,12 +72,18 @@ export function AlertButton({
         required
         value={targetPrice}
         onChange={(e) => setTargetPrice(e.target.value)}
-        style={{ width: 70, fontSize: "0.8rem", padding: "0.2rem 0.4rem" }}
+        style={{
+          width: 80,
+          fontSize: "0.85rem",
+          padding: "0.5rem 0.6rem",
+          border: "1px solid var(--border)",
+          borderRadius: 8,
+        }}
       />
       <button className="alert-btn" type="submit" disabled={status === "saving"}>
         {status === "saving" ? "..." : "Salvar"}
       </button>
-      {status === "error" && <span style={{ color: "crimson", fontSize: "0.75rem" }}>Erro</span>}
+      {status === "error" && <span style={{ color: "#b5533a", fontSize: "0.75rem" }}>Erro</span>}
     </form>
   );
 }

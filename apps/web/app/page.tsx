@@ -55,10 +55,7 @@ export default function Home() {
   return (
     <main>
       <h1>Dental Compare</h1>
-      <p className="subtitle">
-        Compare preços de produtos odontológicos entre Dental Borges, Dental Integra, Dental
-        Speed, Dental Cremer e Orto Jaspe.
-      </p>
+      <p className="subtitle">Ache o menor preço em segundos.</p>
 
       <form className="search-form" onSubmit={handleSearch}>
         <input
@@ -99,17 +96,17 @@ export default function Home() {
           <tbody>
             {results.map((r) => (
               <tr key={r.id}>
-                <td>
+                <td data-label="Produto">
                   <a className="store-link" href={r.url} target="_blank" rel="noreferrer">
                     {r.name}
                   </a>
                 </td>
-                <td>{r.storeName}</td>
-                <td className={r.price === lowestPrice ? "best-price" : undefined}>
+                <td data-label="Loja">{r.storeName}</td>
+                <td data-label="Preço" className={r.price === lowestPrice ? "best-price" : undefined}>
                   {formatBRL(r.price)}
                 </td>
-                <td>{r.inStock ? "Em estoque" : "Indisponível"}</td>
-                <td>
+                <td data-label="Estoque">{r.inStock ? "Em estoque" : "Indisponível"}</td>
+                <td data-label="">
                   <AlertButton storeProductId={r.id} currentPrice={r.price} />
                 </td>
               </tr>
