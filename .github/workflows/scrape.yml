@@ -2,8 +2,8 @@ name: Coleta de preços
 
 on:
   schedule:
-    # 09:00 e 21:00 (horário de Brasília, UTC-3)
-    - cron: "0 12,0 * * *"
+    # 08:00, 11:00, 14:00, 17:00, 20:00 e 23:00 (horário de Brasília, UTC-3)
+    - cron: "0 11,14,17,20,23,2 * * *"
   workflow_dispatch: {}
 
 jobs:
