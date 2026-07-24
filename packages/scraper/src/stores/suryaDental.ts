@@ -1,6 +1,13 @@
 import { chromium } from "playwright";
 import type { ScrapedProduct, StoreAdapter } from "../types.js";
 
+// Status as of the last attempt: running this from a residential IP (a self-hosted
+// GitHub Actions runner at home) gets past Akamai's IP-reputation blocking, but
+// Akamai still returns an "Access Denied" HTML page instead of the GraphQL response —
+// consistent with headless-browser fingerprinting rather than (or in addition to)
+// IP-based blocking. Getting past that would need real anti-detection work (e.g.
+// running Chromium non-headless under a virtual display, patching automation
+// fingerprints) that hasn't been attempted yet.
 const BASE_URL = "https://www.suryadental.com.br";
 
 const SEARCH_QUERY = /* GraphQL */ `
