@@ -9,20 +9,25 @@ passo a passo. Este arquivo é sobre **decisões e estado que não são óbvios 
 - **Vercel**: projeto `team8teen/dental-compare` → https://dental-compare-fawn.vercel.app
 - **Neon** (Postgres): projeto na conta pessoal do Rodrigo, região `sa-east-1`, endpoint
   `ep-rough-breeze-acus6cc1`
-- **Resend**: e-mail de alertas configurado, mas **plano gratuito sem domínio verificado**
-  — só envia para o e-mail da conta Resend (rodrigo.bento2010@gmail.com), qualquer outro
-  destinatário falha silenciosamente
-- **GitHub Secrets configurados**: `DATABASE_URL`, `DATABASE_URL_SURYA`, `RESEND_API_KEY`,
-  `ALERTS_FROM_EMAIL`
+- **E-mail de alertas**: enviado via SMTP do Gmail (`nodemailer`, conta rodrigo.bento2010@gmail.com
+  com senha de app) a partir do runner auto-hospedado — não usa mais Resend (trocado porque o
+  objetivo era rodar no servidor caseiro; Resend exigiria domínio verificado pra sair do limite
+  de "só envia pra si mesmo" e não resolveria isso de qualquer forma)
+- **GitHub Secrets configurados**: `DATABASE_URL`, `DATABASE_URL_SURYA`, `GMAIL_USER`,
+  `GMAIL_APP_PASSWORD`
 - **Runner auto-hospedado**: container Docker `gh-runner-dental-compare` rodando no notebook
-  Umbrel do Rodrigo (labels `self-hosted, umbrel, surya`), só usado pelo job `scrape-surya`
+  Umbrel do Rodrigo (labels `self-hosted, umbrel, surya`), usado pelos jobs `scrape-surya` e
+  `check-alerts`
 
 ## Coleta automática
 
 Workflow `.github/workflows/scrape.yml` roda 6x/dia (8h-23h horário de Brasília, a cada 3h).
-Dois jobs independentes:
+Três jobs:
 - `scrape`: as 5 lojas confiáveis, roda em runner do GitHub (nuvem)
-- `scrape-surya`: só a Surya Dental, precisa do runner auto-hospedado
+- `scrape-surya`: só a Surya Dental, precisa do runner auto-hospedado (best-effort, não
+  bloqueia os outros jobs se falhar/estiver offline)
+- `check-alerts`: verifica alertas de preço e manda e-mail via Gmail SMTP; roda depois de
+  `scrape` (pra checar contra preços frescos), também no runner auto-hospedado
 
 ## Gotchas resolvidos (não repetir a investigação)
 
@@ -36,9 +41,12 @@ Dois jobs independentes:
    sufixo `-pooler` exatamente igual ao hostname usado.
 4. **Motor do Prisma falha especificamente no runner do Umbrel** mesmo com a connection string
    correta (raiz não totalmente identificada — TCP/TLS/psql funcionam, só o engine do Prisma
-   não). Contornado: `packages/scraper/src/ingestSurya.ts` usa `pg` (node-postgres) direto em
-   vez de `@dental-compare/db`/Prisma.
-5. **Surya Dental bloqueia por detecção de headless browser**, não só por IP — mesmo rodando
+   não). Contornado: `ingestSurya.ts` e `checkAlerts.ts` usam `pg` (node-postgres) direto em
+   vez de `@dental-compare/db`/Prisma — qualquer script novo que rode nesse runner deve
+   seguir o mesmo padrão.
+5. **E-mail direto de IP residencial não é confiável** (Gmail/Outlook filtram/rejeitam) — por
+   isso `checkAlerts.ts` usa o SMTP do Gmail como relay em vez de tentar mandar diretamente.
+6. **Surya Dental bloqueia por detecção de headless browser**, não só por IP — mesmo rodando
    do runner residencial (Umbrel), a Akamai retorna "Access Denied" pro Playwright headless.
    Precisaria de anti-detecção (Chromium não-headless com display virtual, patch de
    fingerprint) pra resolver — não tentado ainda. Ver comentário em

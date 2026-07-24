@@ -38,13 +38,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Verificar alertas de preço
-        run: npm run --workspace=packages/scraper check-alerts
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          ALERTS_FROM_EMAIL: ${{ secrets.ALERTS_FROM_EMAIL }}
-
   # Surya Dental blocks datacenter/cloud IPs (Akamai bot manager), so it can't run on
   # GitHub-hosted runners. This job targets a self-hosted runner on a residential
   # network instead. It's independent of the "scrape" job above — if the self-hosted
@@ -81,3 +74,32 @@ jobs:
           # everywhere else — and the override caused the opposite problem there, so
           # the two are kept as separate secrets rather than one shared value.
           DATABASE_URL: ${{ secrets.DATABASE_URL_SURYA }}
+
+  # Price-drop emails are sent from the self-hosted runner too, via Gmail's SMTP
+  # relay (a home/residential IP can't deliver mail directly — most providers
+  # reject or spam-filter it — so this rides on Gmail's sending reputation
+  # instead of a third-party transactional email API). Runs after "scrape" so it
+  # checks against freshly collected prices; doesn't depend on "scrape-surya"
+  # since that job is best-effort and shouldn't block alert checks if it fails.
+  check-alerts:
+    needs: scrape
+    runs-on: [self-hosted, umbrel]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar alertas de preço
+        run: npm run --workspace=packages/scraper check-alerts
+        env:
+          # Same DB secret used by scrape-surya — see the comment on that job for why
+          # this runner needs the Neon endpoint override that other runners don't.
+          DATABASE_URL: ${{ secrets.DATABASE_URL_SURYA }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
