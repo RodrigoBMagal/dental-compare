@@ -69,9 +69,15 @@ jobs:
       - name: Gerar Prisma Client
         run: npm run db:generate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_SURYA }}
 
       - name: Coletar preços da Surya Dental
         run: npm run --workspace=packages/scraper ingest:surya
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Uses a separate connection string with an explicit Neon endpoint override
+          # (?options=endpoint=...). The self-hosted runner's Docker network doesn't
+          # negotiate SNI-based endpoint routing the way GitHub-hosted runners and
+          # Vercel do, so plain DATABASE_URL times out here even though it works
+          # everywhere else — and the override caused the opposite problem there, so
+          # the two are kept as separate secrets rather than one shared value.
+          DATABASE_URL: ${{ secrets.DATABASE_URL_SURYA }}
