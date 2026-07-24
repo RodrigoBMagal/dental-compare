@@ -2,7 +2,7 @@ import { PrismaClient } from "@dental-compare/db";
 import { searchAllStoresWith } from "./index.js";
 import type { StoreAdapter } from "./types.js";
 
-const DEFAULT_TERMS = [
+export const DEFAULT_SEARCH_TERMS = [
   "resina composta",
   "luva de procedimento",
   "clareador dental",
@@ -29,10 +29,10 @@ async function getTermsToScrape(prisma: PrismaClient): Promise<string[]> {
   const existing = await prisma.searchTerm.findMany({ select: { term: true } });
   if (existing.length === 0) {
     await prisma.searchTerm.createMany({
-      data: DEFAULT_TERMS.map((term) => ({ term })),
+      data: DEFAULT_SEARCH_TERMS.map((term) => ({ term })),
       skipDuplicates: true,
     });
-    return DEFAULT_TERMS;
+    return DEFAULT_SEARCH_TERMS;
   }
   return existing.map((e) => e.term);
 }
