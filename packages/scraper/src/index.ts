@@ -32,10 +32,13 @@ export interface StoreSearchResult {
   error: string | null;
 }
 
-/** Searches every store in parallel. A failure in one store never aborts the others. */
-export async function searchAllStores(query: string): Promise<StoreSearchResult[]> {
+/** Searches the given stores in parallel. A failure in one store never aborts the others. */
+export async function searchAllStoresWith(
+  adapters: StoreAdapter[],
+  query: string,
+): Promise<StoreSearchResult[]> {
   return Promise.all(
-    storeAdapters.map(async (adapter) => {
+    adapters.map(async (adapter) => {
       try {
         const products = await adapter.search(query);
         return { storeSlug: adapter.slug, storeName: adapter.name, products, error: null };
@@ -49,4 +52,9 @@ export async function searchAllStores(query: string): Promise<StoreSearchResult[
       }
     }),
   );
+}
+
+/** Searches every default store in parallel. A failure in one store never aborts the others. */
+export async function searchAllStores(query: string): Promise<StoreSearchResult[]> {
+  return searchAllStoresWith(storeAdapters, query);
 }

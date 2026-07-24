@@ -44,3 +44,34 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERTS_FROM_EMAIL: ${{ secrets.ALERTS_FROM_EMAIL }}
+
+  # Surya Dental blocks datacenter/cloud IPs (Akamai bot manager), so it can't run on
+  # GitHub-hosted runners. This job targets a self-hosted runner on a residential
+  # network instead. It's independent of the "scrape" job above — if the self-hosted
+  # runner is offline, only this job is affected, not the 5 stores that scrape reliably
+  # from GitHub-hosted runners.
+  scrape-surya:
+    runs-on: [self-hosted, umbrel, surya]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar navegador do Playwright
+        run: npx --workspace=packages/scraper playwright install --with-deps chromium
+
+      - name: Gerar Prisma Client
+        run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Coletar preços da Surya Dental
+        run: npm run --workspace=packages/scraper ingest:surya
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
