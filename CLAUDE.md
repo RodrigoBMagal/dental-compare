@@ -15,6 +15,11 @@ passo a passo. Este arquivo é sobre **decisões e estado que não são óbvios 
   de "só envia pra si mesmo" e não resolveria isso de qualquer forma)
 - **GitHub Secrets configurados**: `DATABASE_URL`, `DATABASE_URL_SURYA`, `GMAIL_USER`,
   `GMAIL_APP_PASSWORD`
+- **Vercel env vars**: `DATABASE_URL`, `AUTH_SECRET`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`
+  (as duas últimas são para o link mágico de login, que sai do site e não do runner)
+- **Contas de usuário**: Auth.js v5 com link mágico por e-mail (sem senha). Cadastro é
+  **aberto** — qualquer pessoa com o link pode criar conta. Se precisar restringir, dá pra
+  filtrar por lista de e-mails permitidos no callback `signIn`.
 - **Runner auto-hospedado**: container Docker `gh-runner-dental-compare` rodando no notebook
   Umbrel do Rodrigo (labels `self-hosted, umbrel, surya`), usado pelos jobs `scrape-surya` e
   `check-alerts`
@@ -46,7 +51,12 @@ Três jobs:
    seguir o mesmo padrão.
 5. **E-mail direto de IP residencial não é confiável** (Gmail/Outlook filtram/rejeitam) — por
    isso `checkAlerts.ts` usa o SMTP do Gmail como relay em vez de tentar mandar diretamente.
-6. **Surya Dental bloqueia por detecção de headless browser**, não só por IP — mesmo rodando
+6. **Provider Nodemailer do Auth.js quebra no build** — ele resolve o `nodemailer` por um
+   import interno que a interop CJS do webpack embaralha, deixando `createTransport`
+   indefinido em produção (`serverExternalPackages` e `outputFileTracingIncludes` sozinhos
+   não resolvem). Corrigido passando um `sendVerificationRequest` próprio em `auth.ts`, que
+   importa o nodemailer no topo do módulo. Bônus: o e-mail fica em português.
+7. **Surya Dental bloqueia por detecção de headless browser**, não só por IP — mesmo rodando
    do runner residencial (Umbrel), a Akamai retorna "Access Denied" pro Playwright headless.
    Precisaria de anti-detecção (Chromium não-headless com display virtual, patch de
    fingerprint) pra resolver — não tentado ainda. Ver comentário em
@@ -59,3 +69,10 @@ Três jobs:
   (Playwright) em vez de `fetchHtml`.
 - `experimentalStoreAdapters` (hoje só Surya) fica fora do `storeAdapters` padrão — não
   entra na coleta/ingest normal, só no `ingest:surya` dedicado.
+- Rotas protegidas checam a sessão com `auth()` direto no server component (ver
+  `app/lista/page.tsx`), **não** em middleware — middleware roda no edge runtime, onde o
+  adapter do Prisma não consegue abrir conexão com o banco.
+- A lista de compras guarda `priceAtAdd` em cada item pra conseguir mostrar a variação; o
+  preço atual sempre vem do `PriceSnapshot` mais recente. O total é soma simples entre
+  lojas — comparar "tudo na loja A vs loja B" exigiria casar produtos equivalentes entre
+  lojas, que é a limitação de agrupamento ainda em aberto.

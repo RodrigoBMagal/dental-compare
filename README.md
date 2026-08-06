@@ -9,7 +9,8 @@ Speed, Dental Cremer e Orto Jaspe (Surya Dental tem suporte experimental — vej
   requisições HTTP simples; Dental Speed e Dental Cremer usam um navegador headless
   (Playwright) porque bloqueiam clientes HTTP comuns.
 - `packages/db` — schema Prisma (Postgres) com as tabelas de lojas, produtos, preços e alertas.
-- `apps/web` — app Next.js com busca e comparação de preços, além do cadastro de alertas.
+- `apps/web` — app Next.js com busca e comparação de preços, contas de usuário (login por
+  link mágico no e-mail), lista de compras com total, e cadastro de alertas.
 - `.github/workflows/scrape.yml` — roda a coleta de preços e a verificação de alertas 6x/dia.
 
 A coleta de preços roda em segundo plano (GitHub Actions), grava no banco, e o site apenas lê
@@ -79,10 +80,15 @@ Os e-mails de alerta são enviados pelo SMTP do Gmail a partir do runner auto-ho
 
 ### 3. Variáveis de ambiente
 
-- `apps/web/.env.local`:
+- `apps/web/.env.local` (e as mesmas na Vercel, em Settings → Environment Variables):
   ```
   DATABASE_URL="<sua connection string do Neon/Supabase>"
+  AUTH_SECRET="<gere com: node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\">"
+  GMAIL_USER="<seu e-mail>"
+  GMAIL_APP_PASSWORD="<senha de app do Gmail>"
   ```
+  As credenciais do Gmail aparecem aqui **e** nos secrets do GitHub: o site usa para o link
+  mágico de login, o runner usa para os alertas de preço.
 - Secrets do repositório no GitHub (Settings → Secrets and variables → Actions):
   - `DATABASE_URL`
   - `DATABASE_URL_SURYA` (ver seção do runner auto-hospedado)
@@ -116,6 +122,10 @@ npm run dev                                   # abre o site em http://localhost:
 - **Cobertura por termo de busca**: a coleta roda sobre uma lista de termos rastreados (que
   cresce conforme os usuários buscam), não o catálogo inteiro de cada loja.
 - **Surya Dental**: ver seção acima.
+- **Total da lista é soma simples**: itens de lojas diferentes somam direto, sem considerar
+  frete nem comparar "quanto sairia comprando tudo na mesma loja" — isso dependeria do
+  agrupamento de produtos equivalentes entre lojas, que ainda não existe.
+- **Cadastro aberto**: qualquer pessoa com o link do site pode criar conta.
 - **Alertas dependem do runner auto-hospedado estar ligado**: se a máquina em casa estiver
   desligada, os e-mails de alerta simplesmente não são verificados naquele ciclo (não é uma
   falha silenciosa — o job fica visível como não executado na aba Actions).
