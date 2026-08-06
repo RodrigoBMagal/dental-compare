@@ -24,9 +24,19 @@ const nextConfig = {
   // directory and can hit permission-restricted folders in the user's profile on Windows.
   outputFileTracingRoot: path.join(__dirname, "../.."),
   eslint: { ignoreDuringBuilds: true },
-  // Recommended by Prisma for Next.js: keep the client as a plain runtime require
-  // instead of letting webpack try to bundle its native query engine binary.
-  serverExternalPackages: ["@prisma/client", "@dental-compare/db"],
+  // Kept out of the webpack bundle and required at runtime instead:
+  //  - @prisma/client: bundling breaks the lookup of its native query engine binary.
+  //  - nodemailer: it's CommonJS, and bundling mangles the interop so that
+  //    `createTransport` comes back undefined at runtime.
+  serverExternalPackages: ["@prisma/client", "@dental-compare/db", "nodemailer"],
+  // Marking a package external stops webpack bundling it, but the file tracer
+  // doesn't automatically ship it either — nodemailer is reached through Auth.js's
+  // internal import, which nft can't follow statically. Without this the deployed
+  // function has no nodemailer on disk at all.
+  outputFileTracingIncludes: {
+    "/login": ["./node_modules/nodemailer/**/*"],
+    "/api/auth/**": ["./node_modules/nodemailer/**/*"],
+  },
 };
 
 export default nextConfig;
