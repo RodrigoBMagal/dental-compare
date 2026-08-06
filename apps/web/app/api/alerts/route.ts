@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
+  // Alerts stay usable while logged out — the account link is a bonus, not a gate.
+  const session = await auth();
   const body = await req.json().catch(() => null);
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   const storeProductId = typeof body?.storeProductId === "string" ? body.storeProductId : "";
@@ -24,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const alert = await prisma.priceAlert.create({
-      data: { email, storeProductId, targetPrice },
+      data: { email, storeProductId, targetPrice, userId: session?.user?.id ?? null },
     });
 
     return NextResponse.json({ alert }, { status: 201 });

@@ -29,19 +29,20 @@ model Product {
 }
 
 model StoreProduct {
-  id             String          @id @default(cuid())
+  id             String             @id @default(cuid())
   storeId        String
-  store          Store           @relation(fields: [storeId], references: [id])
+  store          Store              @relation(fields: [storeId], references: [id])
   productId      String?
-  product        Product?        @relation(fields: [productId], references: [id])
+  product        Product?           @relation(fields: [productId], references: [id])
   externalId     String?
   name           String
   url            String
   imageUrl       String?
-  lastSeenAt     DateTime        @default(now())
-  createdAt      DateTime        @default(now())
+  lastSeenAt     DateTime           @default(now())
+  createdAt      DateTime           @default(now())
   priceSnapshots PriceSnapshot[]
   alerts         PriceAlert[]
+  listItems      ShoppingListItem[]
 
   @@unique([storeId, url])
   @@index([productId])
@@ -61,7 +62,11 @@ model PriceSnapshot {
 
 model PriceAlert {
   id             String        @id @default(cuid())
+  // Kept even when userId is set: alerts predate accounts, and a logged-out
+  // visitor can still create one with just an email.
   email          String
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   storeProductId String?
   storeProduct   StoreProduct? @relation(fields: [storeProductId], references: [id])
   productId      String?
@@ -70,6 +75,8 @@ model PriceAlert {
   active         Boolean       @default(true)
   triggeredAt    DateTime?
   createdAt      DateTime      @default(now())
+
+  @@index([userId])
 }
 
 model SearchTerm {
@@ -77,4 +84,73 @@ model SearchTerm {
   term          String    @unique
   lastScrapedAt DateTime?
   createdAt     DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Auth.js (NextAuth) models. Shape is dictated by @auth/prisma-adapter — don't
+// rename fields here without checking the adapter's expected schema.
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String             @id @default(cuid())
+  name          String?
+  email         String             @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime           @default(now())
+  accounts      Account[]
+  sessions      Session[]
+  listItems     ShoppingListItem[]
+  alerts        PriceAlert[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+
+model ShoppingListItem {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeProductId String
+  storeProduct   StoreProduct @relation(fields: [storeProductId], references: [id], onDelete: Cascade)
+  quantity       Int          @default(1)
+  // Snapshot of the price when the item was added, so the list can show how much
+  // it has moved since. The current price always comes from PriceSnapshot.
+  priceAtAdd     Float
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, storeProductId])
+  @@index([userId])
 }
