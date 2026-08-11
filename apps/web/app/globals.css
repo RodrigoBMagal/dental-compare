@@ -13,6 +13,7 @@
   --primary-strong: #6d9c8f;
   --primary-soft: #e4efec;
   --primary-contrast: #2f4a44;
+  --on-primary: #ffffff;
 
   --accent-peach: #f6e3d4;
   --accent-peach-border: #ecc9a8;
@@ -22,9 +23,49 @@
   --shadow: 0 4px 16px rgba(90, 75, 60, 0.06);
   --shadow-sm: 0 1px 3px rgba(90, 75, 60, 0.06);
 
+  --danger: #b5533a;
+
   --radius-lg: 18px;
   --radius-md: 14px;
   --radius-sm: 10px;
+}
+
+/* ---------- Dark mode ---------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #131716;
+  --bg-gradient: linear-gradient(180deg, #161b1a 0%, #101312 100%);
+  --surface: #1d2221;
+  --surface-soft: #242a29;
+
+  --text: #e6e2da;
+  --text-muted: #8f9895;
+
+  --primary: #7ca99b;
+  --primary-strong: #93b8ab;
+  --primary-soft: #2a3733;
+  --primary-contrast: #cfe4dc;
+  --on-primary: #13201c;
+
+  --accent-peach: #3a2b20;
+  --accent-peach-border: #5b4230;
+  --accent-peach-text: #ecc9a8;
+
+  --border: #2e3433;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+
+  --danger: #f0a58b;
+}
+
+/* A cor fixa do tema claro fica ilegível no fundo escuro. */
+html[data-theme="dark"] .delta-down {
+  color: #7fcf9f;
+}
+
+html[data-theme="dark"] .delta-up {
+  color: #f0a58b;
 }
 
 * {
@@ -116,6 +157,32 @@ main {
   cursor: not-allowed;
 }
 
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--primary-contrast);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  background: var(--primary-soft);
+}
+
+.theme-toggle:active {
+  transform: scale(0.94);
+}
+
 h1 {
   font-size: 1.65rem;
   font-weight: 700;
@@ -167,7 +234,7 @@ h1 {
   border: none;
   border-radius: var(--radius-md);
   background: var(--primary-strong);
-  color: white;
+  color: var(--on-primary);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;
   min-height: 48px;

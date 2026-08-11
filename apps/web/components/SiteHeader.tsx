@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export async function SiteHeader() {
   const session = await auth();
@@ -33,6 +34,7 @@ export async function SiteHeader() {
             Entrar
           </Link>
         )}
+        <ThemeToggle />
       </nav>
     </header>
   );

@@ -13,9 +13,16 @@ export const viewport: Viewport = {
   themeColor: "#f6f4f1",
 };
 
+// Roda antes da hidratação (no <head>, durante o parse do HTML) para aplicar o
+// tema salvo sem "flash" de cor. Sempre cai para o claro se não houver nada salvo.
+const themeInitScript = `(function(){try{var t=localStorage.getItem("dental-compare-theme");if(!t){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}if(t==="dark"){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
         <SiteHeader />
         {children}

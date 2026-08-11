@@ -83,7 +83,9 @@ export function AlertButton({
       <button className="alert-btn" type="submit" disabled={status === "saving"}>
         {status === "saving" ? "..." : "Salvar"}
       </button>
-      {status === "error" && <span style={{ color: "#b5533a", fontSize: "0.75rem" }}>Erro</span>}
+      {status === "error" && (
+        <span style={{ color: "var(--danger)", fontSize: "0.75rem" }}>Erro</span>
+      )}
     </form>
   );
 }
