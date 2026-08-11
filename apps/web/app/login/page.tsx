@@ -15,7 +15,7 @@ export default async function LoginPage({
     <main>
       <h1>Entrar</h1>
       <p className="subtitle">
-        Digite seu e-mail e enviamos um link de acesso — sem senha para criar ou lembrar.
+        Digite seu e-mail e enviamos um link de acesso.
       </p>
 
       {params.enviado === "1" && (
